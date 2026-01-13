@@ -1,0 +1,451 @@
+#!/usr/bin/env python3
+"""
+Convert blog posts to new light design.
+Extracts title, date, and content from Duda HTML and creates clean blog posts.
+"""
+
+import os
+import re
+from html import unescape
+
+BLOG_DIR = "blog"
+
+# Blog template with new light design
+BLOG_TEMPLATE = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} | Spark Israel Innovation</title>
+  <meta name="description" content="{description}">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../assets/css/light-theme.css">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../assets/images/site_favicon_16_1710355443773.ico">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Z8RZM6D4R"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){{dataLayer.push(arguments);}}
+    gtag('js', new Date());
+    gtag('config', 'G-9Z8RZM6D4R');
+  </script>
+
+  <style>
+    .blog-post-hero {{
+      padding: 160px 0 60px;
+      background-color: var(--color-background-alt);
+    }}
+    .blog-post-hero h1 {{
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      max-width: 800px;
+      margin: 0 auto var(--spacing-md);
+    }}
+    .blog-post-meta {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      font-size: 0.95rem;
+      color: var(--color-text-muted);
+    }}
+    .blog-post-content {{
+      max-width: 760px;
+      margin: 0 auto;
+      padding: var(--spacing-2xl) var(--spacing-lg);
+    }}
+    .blog-post-content p {{
+      font-size: 1.1rem;
+      line-height: 1.85;
+      margin-bottom: var(--spacing-lg);
+      color: var(--color-text-light);
+    }}
+    .blog-post-content h2 {{
+      margin-top: var(--spacing-2xl);
+      margin-bottom: var(--spacing-md);
+    }}
+    .blog-post-content h3 {{
+      margin-top: var(--spacing-xl);
+      margin-bottom: var(--spacing-sm);
+    }}
+    .blog-post-content ul, .blog-post-content ol {{
+      margin-bottom: var(--spacing-lg);
+      padding-left: var(--spacing-lg);
+      color: var(--color-text-light);
+    }}
+    .blog-post-content li {{
+      margin-bottom: var(--spacing-sm);
+      line-height: 1.7;
+    }}
+    .blog-post-content img {{
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--border-radius);
+      margin: var(--spacing-xl) 0;
+    }}
+    .blog-post-content blockquote {{
+      border-left: 4px solid var(--color-accent);
+      padding-left: var(--spacing-lg);
+      margin: var(--spacing-xl) 0;
+      font-style: italic;
+      color: var(--color-text-light);
+    }}
+    .blog-nav {{
+      display: flex;
+      justify-content: space-between;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: var(--spacing-xl) var(--spacing-lg);
+      border-top: 1px solid var(--color-border-light);
+    }}
+    .blog-nav a {{
+      font-weight: 500;
+    }}
+    .back-to-blog {{
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: var(--spacing-lg);
+      font-size: 0.95rem;
+      color: var(--color-text-light);
+    }}
+    .back-to-blog:hover {{
+      color: var(--color-accent);
+    }}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">
+        <img src="../assets/images/Spark_Logo_4_final-1920w.png" alt="Spark Israel Innovation">
+      </a>
+
+      <nav class="nav" id="main-nav">
+        <a href="../index.html" class="nav-link">Home</a>
+        <a href="../about.html" class="nav-link">Our Story</a>
+        <a href="../ip.html" class="nav-link">Pivot Capsule</a>
+        <a href="../blog.html" class="nav-link active">Blog</a>
+        <a href="../contact.html" class="nav-link">Contact</a>
+      </nav>
+
+      <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Blog Post Hero -->
+  <section class="blog-post-hero">
+    <div class="container text-center">
+      <a href="../blog.html" class="back-to-blog">&larr; Back to Blog</a>
+      <h1>{title}</h1>
+      <div class="blog-post-meta">
+        <span>By {author}</span>
+        <span>&bull;</span>
+        <span>{date}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blog Post Content -->
+  <article class="blog-post-content">
+{content}
+  </article>
+
+  <!-- Blog Navigation -->
+  <nav class="blog-nav">
+    <a href="../blog.html">&larr; All Posts</a>
+  </nav>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="../assets/images/Spark_Logo_4_final-1920w.png" alt="Spark Israel Innovation">
+          <p>We Build Your Pivot Program, You Push the Button. Helping companies innovate and lead their markets.</p>
+        </div>
+
+        <div class="footer-nav">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="../about.html">Our Story</a></li>
+            <li><a href="../ip.html">Pivot Capsule</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="../blog.html">Blog</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="https://www.linkedin.com/company/spark-israel-innovation" target="_blank">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2025 Spark Israel Innovation. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Menu Script -->
+  <script>
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mainNav = document.getElementById('main-nav');
+
+    mobileMenuToggle.addEventListener('click', () => {{
+      mainNav.classList.toggle('active');
+    }});
+  </script>
+</body>
+</html>
+'''
+
+def extract_title(html_content, filename):
+    """Extract the blog post title from H2 in the paragraph section."""
+    # Look for title in the u_1584755051 div (common pattern for blog post titles)
+    match = re.search(r'u_1584755051[^>]*>.*?<h2[^>]*>(.*?)</h2>', html_content, re.DOTALL)
+    if match:
+        title_html = match.group(1)
+        # Extract text, removing spans and other tags
+        title = re.sub(r'<[^>]+>', '', title_html)
+        title = unescape(title.strip())
+        if title and len(title) > 3:
+            return title
+
+    # Alternative: Look for og:title meta tag
+    match = re.search(r'<meta\s+property="og:title"\s+content="([^"]+)"', html_content)
+    if match:
+        title = unescape(match.group(1).strip())
+        if title and len(title) > 3:
+            return title
+
+    # Alternative: Look for twitter:title
+    match = re.search(r'<meta\s+name="twitter:title"\s+content="([^"]+)"', html_content)
+    if match:
+        title = unescape(match.group(1).strip())
+        if title and len(title) > 3:
+            return title
+
+    # Fallback: generate from filename
+    title = filename.replace('.html', '').replace('-', ' ')
+    return title.title()
+
+def extract_date(html_content):
+    """Extract the blog post date."""
+    # Look for date in the content area (usually after title)
+    # Pattern: Month DD, YYYY
+    match = re.search(r'<p[^>]*class="text-align-right"[^>]*>.*?(\w+\s+\d{1,2},\s+\d{4})', html_content, re.DOTALL)
+    if match:
+        return match.group(1)
+
+    # Look for article:published_time meta
+    match = re.search(r'<meta\s+name="article:published_time"\s+content="(\d{4}-\d{2}-\d{2})', html_content)
+    if match:
+        date_str = match.group(1)
+        # Convert YYYY-MM-DD to Month DD, YYYY
+        from datetime import datetime
+        try:
+            dt = datetime.strptime(date_str, '%Y-%m-%d')
+            return dt.strftime('%B %d, %Y')
+        except:
+            return date_str
+
+    # Common date patterns in text
+    patterns = [
+        r'(\w+\s+\d{1,2},\s+\d{4})',  # March 17, 2024
+        r'(\d{4}-\d{2}-\d{2})',        # 2024-03-17
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, html_content)
+        if match:
+            return match.group(1)
+
+    return "2024"
+
+def extract_description(html_content):
+    """Extract meta description."""
+    match = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', html_content)
+    if match:
+        return unescape(match.group(1).strip())[:200]
+
+    match = re.search(r'<meta\s+property="og:description"\s+content="([^"]+)"', html_content)
+    if match:
+        return unescape(match.group(1).strip())[:200]
+
+    return ""
+
+def extract_content(html_content):
+    """Extract and clean the main blog post content."""
+
+    # The main content is in the u_1619568916 dmNewParagraph div
+    # This pattern captures the content div specifically
+    match = re.search(
+        r'<div\s+class="u_1619568916\s+dmNewParagraph"[^>]*>(.*?)</div>\s*</div>\s*\n\s*</div>',
+        html_content,
+        re.DOTALL
+    )
+
+    if match:
+        content = match.group(1)
+        return clean_content(content)
+
+    # Alternative: Look for any dmNewParagraph with substantial content
+    matches = re.findall(
+        r'<div\s+class="[^"]*dmNewParagraph[^"]*"[^>]*>(.*?)</div>(?=\s*</div>|\s*<div\s+class="dmRespRow)',
+        html_content,
+        re.DOTALL
+    )
+
+    for content in matches:
+        # Skip if it's just a title (h2) or very short
+        text_only = re.sub(r'<[^>]+>', '', content)
+        if len(text_only) > 200 and '<p' in content.lower():
+            return clean_content(content)
+
+    # Fallback: Extract all paragraphs with substantial text
+    paragraphs = re.findall(r'<p[^>]*class="[^"]*(?:m-size|size)-\d+[^"]*"[^>]*>(.*?)</p>', html_content, re.DOTALL)
+    if paragraphs:
+        cleaned = []
+        for p in paragraphs:
+            text = clean_paragraph(p)
+            text_only = re.sub(r'<[^>]+>', '', text)
+            if len(text_only.strip()) > 30:
+                cleaned.append(f"    <p>{text}</p>")
+        if cleaned:
+            return '\n\n'.join(cleaned)
+
+    return "    <p>Blog post content.</p>"
+
+def clean_paragraph(text):
+    """Clean a single paragraph of HTML."""
+    # Remove inline styles
+    text = re.sub(r'\s*style="[^"]*"', '', text)
+    # Remove class attributes
+    text = re.sub(r'\s*class="[^"]*"', '', text)
+    # Remove data attributes
+    text = re.sub(r'\s*data-[a-z-]+="[^"]*"', '', text)
+    # Remove spans but keep content
+    text = re.sub(r'<span[^>]*>(.*?)</span>', r'\1', text, flags=re.DOTALL)
+    # Clean up empty spans
+    text = re.sub(r'<span[^>]*>\s*</span>', '', text)
+    text = re.sub(r'<span[^>]*>', '', text)
+    text = re.sub(r'</span>', '', text)
+    # Remove zero-width characters and cursor markers
+    text = re.sub(r'[\ufeff\u200b]', '', text)
+    text = re.sub(r'<span class="ql-cursor">[^<]*</span>', '', text)
+    # Clean up br tags
+    text = re.sub(r'<br\s*/?>', '<br>', text)
+    # Remove empty paragraphs
+    text = re.sub(r'<p[^>]*>\s*<br>\s*</p>', '', text)
+    return text.strip()
+
+def clean_content(content):
+    """Clean up extracted content HTML."""
+
+    # Remove the date line at the beginning (it's in the header now)
+    content = re.sub(r'<p[^>]*class="text-align-right"[^>]*>.*?</p>\s*', '', content, flags=re.DOTALL)
+
+    # Process paragraphs
+    paragraphs = []
+
+    # Find all paragraph elements
+    p_matches = re.finditer(r'<p[^>]*>(.*?)</p>', content, re.DOTALL)
+
+    for match in p_matches:
+        p_content = match.group(1)
+        cleaned = clean_paragraph(p_content)
+
+        # Skip empty or nearly empty paragraphs
+        text_only = re.sub(r'<[^>]+>', '', cleaned)
+        text_only = re.sub(r'\s+', ' ', text_only).strip()
+
+        if len(text_only) > 5:
+            paragraphs.append(f"    <p>{cleaned}</p>")
+
+    if paragraphs:
+        return '\n\n'.join(paragraphs)
+
+    # If no paragraphs found, try to clean the whole content
+    cleaned = clean_paragraph(content)
+    text_only = re.sub(r'<[^>]+>', '', cleaned)
+    if len(text_only.strip()) > 20:
+        return f"    <p>{cleaned}</p>"
+
+    return "    <p>Blog post content.</p>"
+
+def process_blog_file(filepath):
+    """Process a single blog file and convert to new design."""
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+
+    filename = os.path.basename(filepath)
+
+    # Extract components
+    title = extract_title(html_content, filename)
+    date = extract_date(html_content)
+    content = extract_content(html_content)
+    description = extract_description(html_content) or title[:150]
+    author = "Shlomo Touboul"
+
+    # Generate new HTML using template
+    new_html = BLOG_TEMPLATE.format(
+        title=title,
+        description=description,
+        author=author,
+        date=date,
+        content=content
+    )
+
+    # Write the new file
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(new_html)
+
+    print(f"Converted: {filename}")
+    print(f"  Title: {title[:60]}...")
+    print(f"  Date: {date}")
+    print()
+
+    return {'title': title, 'date': date, 'author': author}
+
+def main():
+    """Main function to process all blog files."""
+
+    blog_files = [f for f in os.listdir(BLOG_DIR) if f.endswith('.html')]
+    print(f"Found {len(blog_files)} blog files to convert.\n")
+    print("=" * 60)
+
+    for blog_file in sorted(blog_files):
+        filepath = os.path.join(BLOG_DIR, blog_file)
+        try:
+            process_blog_file(filepath)
+        except Exception as e:
+            print(f"Error processing {blog_file}: {e}")
+            print()
+
+    print("=" * 60)
+    print(f"Done! Converted {len(blog_files)} blog posts.")
+
+if __name__ == '__main__':
+    main()
