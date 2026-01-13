@@ -28,7 +28,7 @@ BLOG_TEMPLATE = '''<!DOCTYPE html>
   <link rel="stylesheet" href="../assets/css/light-theme.css">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="../assets/images/site_favicon_16_1710355443773.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Z8RZM6D4R"></script>
@@ -127,7 +127,7 @@ BLOG_TEMPLATE = '''<!DOCTYPE html>
   <header class="header">
     <div class="header-inner">
       <a href="../index.html" class="logo">
-        <img src="../assets/images/Spark_Logo_4_final-1920w.png" alt="Spark Israel Innovation">
+        <img src="../assets/images/spark-logo-light.png" alt="Spark Israel Innovation">
       </a>
 
       <nav class="nav" id="main-nav">
@@ -174,7 +174,7 @@ BLOG_TEMPLATE = '''<!DOCTYPE html>
     <div class="container">
       <div class="footer-inner">
         <div class="footer-brand">
-          <img src="../assets/images/Spark_Logo_4_final-1920w.png" alt="Spark Israel Innovation">
+          <img src="../assets/images/spark-logo-light.png" alt="Spark Israel Innovation">
           <p>We Build Your Pivot Program, You Push the Button. Helping companies innovate and lead their markets.</p>
         </div>
 
